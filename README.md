@@ -33,6 +33,7 @@ Rather than creating new datasets, we focus on systematic translation of the exi
 - **Gemma-2-9B**: Google's efficient multilingual model
 - **Llama-3.1-8B**: Meta's open-source multilingual architecture
 - **Qwen2.5-7B**: Alibaba's multilingual model with Indian language support
+- **Gpt-oss-20b**: OpenAI open source model
 
 **Translation Strategy:**
 - Preserve all Cypher syntax, keywords, and schema elements in English
