@@ -1,3 +1,6 @@
+<img width="3360" height="1910" alt="image" src="https://github.com/user-attachments/assets/e7497584-93fd-46db-98af-7f3b48907314" />
+
+
 # Multilingual Text2Cypher for Indian Languages: A Cross-Language Family Evaluation Framework
 
 ## Abstract
