@@ -1,0 +1,18 @@
+[project]
+name = "neo4j-phoenix"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "arize-phoenix-client>=1.15.1",
+    "arize-phoenix-otel>=0.12.1",
+    "arize-phoenix[evals]>=11.21.0",
+    "datasets>=4.0.0",
+    "dspy-ai>=2.6.27",
+    "litellm[proxy]>=1.75.2",
+    "neo4j>=5.28.2",
+    "openinference-instrumentation-dspy>=0.1.27",
+    "python-dotenv>=1.1.1",
+    "sentence-transformers>=5.1.0",
+]

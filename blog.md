@@ -406,4 +406,4 @@ The key insight: **translation quality alone doesn't guarantee task success**. A
 
 ---
 
-*Ready to build your own multilingual evaluation pipeline? Check out the [complete code](link-to-github) and start evaluating your models with Phoenix today!*
+*Ready to build your own multilingual evaluation pipeline? Check out the [complete code](https://github.com/AximoxAI/neo4j-phoenix/blob/main/eval-llm-as-judge.py) and start evaluating your models with Phoenix today!*
