@@ -1,8 +1,9 @@
-# Building a Multilingual Cypher Query Evaluation Pipeline with Phoenix
+# Building a Multilingual Cypher Query Evaluation Pipeline with Arize Phoenix
 
-*How to evaluate LLM performance across languages for complex database query generation*
+*How to evaluate LLM performance across languages for complex cypher query generation*
 
----
+<img width="3360" height="1910" alt="image" src="https://github.com/user-attachments/assets/7d1d0fe1-5cd5-4130-8150-241328ddb162" />
+
 
 As organizations expand globally, the need for multilingual AI systems becomes critical. But how do you evaluate whether your language model can handle business questions in non-English languages and still generate correct database queries? In this post, we'll walk through building a comprehensive evaluation pipeline that tests multilingual text-to-Cypher generation using Phoenix for observability and evaluation tracking.
 
