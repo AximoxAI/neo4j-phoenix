@@ -9,10 +9,11 @@ from sentence_transformers import SentenceTransformer, util
 from openinference.semconv.trace import SpanAttributes
 import logging
 
+
 from openinference.instrumentation import suppress_tracing
 from phoenix.client import Client
 from opentelemetry.trace import Status, StatusCode
-
+from opentelemetry.trace import format_span_id
 
 # Setup simple logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -20,6 +21,7 @@ logger = logging.getLogger(__name__)
 
 
 load_dotenv()
+
 
 def init_phoenix():
     """Initialize Phoenix UI for observability."""
@@ -34,7 +36,7 @@ def init_phoenix():
     DSPyInstrumentor().instrument()
     logger.info("DSPy instrumentation enabled")
 
-    client = Client()
+    client = Client(base_url="http://localhost:6006")
 
     return tracer, client
 
@@ -104,11 +106,13 @@ class GenerateCypher(dspy.Signature):
 
 
 class EvaluateCypherEquivalence(dspy.Signature):
-    """Determines if two Cypher queries are functionally equivalent using categorical assessment."""
+    """Determines if two Cypher queries are functionally equivalent using categorical assessment.
+       If generated query is superset of ground truth it is considered to be equivalent.
+    """
     ground_truth_query = dspy.InputField(desc="The correct/reference Cypher query")
-    generated_query = dspy.InputField(desc="The generated Cypher query to evaluate") 
+    generated_query = dspy.InputField(desc="The generated Cypher query to evaluate")
+
     schema = dspy.InputField(desc="Neo4j database schema for context")
-    
     equivalence_category = dspy.OutputField(desc="One of: EQUIVALENT, PARTIALLY_CORRECT, INCORRECT, SYNTAX_ERROR")
     reasoning = dspy.OutputField(desc="Brief explanation of the categorization")
 
@@ -234,7 +238,7 @@ def process_and_evaluate_sample(tracer, sample, evaluator, back_translator,
         "multilingual_evaluation_" + target_language,
         openinference_span_kind="chain",
         attributes={
-            "evaluation.question": sample['question'][:200],  # Truncate to avoid issues
+            "evaluation.question": sample['question'][:200],
             "evaluation.target_language": target_language,
             "evaluation.sample_id": str(sample_id),
             "evaluation.sample_type": "multilingual_cypher_generation"
@@ -305,10 +309,12 @@ def process_and_evaluate_sample(tracer, sample, evaluator, back_translator,
             # Safely set attributes
             safe_set_span_attributes(eval_span, evaluation_attrs)
             eval_span.set_attribute("feedback", cypher_assessment.get('category', ''))
+
+            span_id = format_span_id(eval_span.get_span_context().span_id)
+
             logger.debug(f"Sample {sample_id} evaluation completed successfully")
-            
-            return pipeline_result, translation_score_result, cypher_assessment
-            
+            return pipeline_result, translation_score_result, cypher_assessment, span_id
+
         except Exception as e:
             logger.error(f"Error processing sample {sample_id}: {e}")
             # Safely set error attributes
@@ -317,7 +323,7 @@ def process_and_evaluate_sample(tracer, sample, evaluator, back_translator,
                 "evaluation.pipeline_error": str(e)
             })
             eval_span.set_status(Status(StatusCode.ERROR))
-            return None, {"score": 0.0, "error": str(e)}, {"correct": False, "reason": f"Pipeline error: {e}"}
+            return None, {"score": 0.0, "error": str(e)}, {"correct": False, "reason": f"Pipeline error: {e}"}, span_id
         
 
 def main():
@@ -355,11 +361,35 @@ def main():
                 for i, sample in enumerate(train_samples):
                     logger.info(f"Processing sample {i+1}/{len(train_samples)}")
                     
-                    pipeline_result, translation_score, cypher_assessment = process_and_evaluate_sample(
+                    pipeline_result, translation_score, cypher_assessment, span_id = process_and_evaluate_sample(
                         tracer=tracer, sample=sample, evaluator=evaluator,
                         back_translator=back_translator, sentence_model=sentence_model,
                         target_language=target_language, cypher_judge=cypher_judge, sample_id=i
                     )
+
+                    # logger.info("Saving span data for span id:", span_id)
+                    try:
+                        client.annotations.add_span_annotation(
+                            annotation_name="translation_score",
+                            annotator_kind="LLM",
+                            span_id=span_id,
+                            label="translation",
+                            score=float(translation_score.get('score', 0.0))
+                        )
+                    except Exception as e:
+                        logger.exception("exception occurred while pushing span transalation {e}", e)
+
+                    try:
+                        client.annotations.add_span_annotation(
+                            annotation_name="cypher_score",
+                            annotator_kind="LLM",
+                            span_id=span_id,
+                            label="cypher",
+                            score=cypher_assessment.get('score', 0.0),
+                            metadata={"category": cypher_assessment.get('category', '')}
+                        )
+                    except Exception as e:
+                        logger.exception("exception occurred while pushing span cypher assessment {e}", e) 
                     
                     # Store results for summary reporting
                     result = {
@@ -428,7 +458,7 @@ def main():
         print(category_counts.to_string())
     
     logger.info("All evaluations uploaded to Phoenix!")
-    print(f"View detailed traces and evaluations in Phoenix UI")
+    print("View detailed traces and evaluations in Phoenix UI")
     print("\nIn Phoenix, you can:")
     print("- Filter spans by evaluation.sample_type")
     print("- View translation quality scores and labels")
