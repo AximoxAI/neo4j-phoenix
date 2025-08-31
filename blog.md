@@ -385,6 +385,13 @@ lang_summary = df.groupby(['target_language']).agg(
     cross_lingual_accuracy_pct=('cypher_matches_english_ground_truth', lambda x: (x == True).mean() * 100)
 ).round(2)
 ```
+We can also use the Arize Phoenix dashboard to filter out all the evals where the Judge labelled the generated cypher "INCORRECT"
+Filter the spans using : 
+``` annotations['cypher_score'].score != 1 ```
+
+<img width="3350" height="1452" alt="image" src="https://github.com/user-attachments/assets/c510951b-4838-473a-9b1c-4f6cebb2e88e" />
+
+
 
 ## Key Takeaways
 
