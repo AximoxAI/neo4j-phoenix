@@ -2,7 +2,8 @@
 
 *How to evaluate LLM performance across languages for complex cypher query generation*
 
-<img width="3360" height="1910" alt="image" src="https://github.com/user-attachments/assets/7d1d0fe1-5cd5-4130-8150-241328ddb162" />
+<img width="3358" height="910" alt="image" src="https://github.com/user-attachments/assets/1002e5ec-f1c2-46c0-8a30-7c70a83c0f4d" />
+
 
 
 As organizations expand globally, the need for multilingual AI systems becomes critical. But how do you evaluate whether your language model can handle business questions in non-English languages and still generate correct database queries? In this post, we'll walk through building a comprehensive evaluation pipeline that tests multilingual text-to-Cypher generation using Phoenix for observability and evaluation tracking.
