@@ -107,10 +107,12 @@ class GenerateCypher(dspy.Signature):
 
 class EvaluateCypherEquivalence(dspy.Signature):
     """Determines if two Cypher queries are functionally equivalent using categorical assessment.
-       If generated query is superset of ground truth it is considered to be equivalent.
+       If generated query is able to answer the english query it is Equivalent. Queries maybe returning additional 
+       fields, but if query is able to answer the english query then it should be considered equivalent.
     """
     ground_truth_query = dspy.InputField(desc="The correct/reference Cypher query")
     generated_query = dspy.InputField(desc="The generated Cypher query to evaluate")
+    natural_lang_query = dspy.InputField(desc="Natural Language Query in english")
 
     schema = dspy.InputField(desc="Neo4j database schema for context")
     equivalence_category = dspy.OutputField(desc="One of: EQUIVALENT, PARTIALLY_CORRECT, INCORRECT, SYNTAX_ERROR")
@@ -166,50 +168,52 @@ def score_translation_quality(original_text, translated_text, back_translator, s
             return {"score": 0.0, "back_translated_text": "", "error": str(e)}
 
 
-def compare_query_results_with_llm(ground_truth_query, generated_query, schema, cypher_judge):
+def compare_query_results_with_llm(ground_truth_query, generated_query, schema, cypher_judge,
+                                   natural_language_question):
     """Compare queries using categorical LLM judge."""
     logger.debug("Comparing queries using categorical LLM judge")
     
-    with suppress_tracing():
-        try:
-            result = cypher_judge(
+    # with suppress_tracing():
+    try:
+        result = cypher_judge(
                 ground_truth_query=ground_truth_query,
                 generated_query=generated_query,
-                schema=schema
+                schema=schema,
+                natural_lang_query=natural_language_question
             )
             
-            # Map categories to boolean and score
-            category = result.equivalence_category.upper()
+        # Map categories to boolean and score
+        category = result.equivalence_category.upper()
             
-            if category == "EQUIVALENT":
-                correct = True
-                score = 1.0
-            elif category == "PARTIALLY_CORRECT":
-                correct = None  # Partial credit
-                score = 0.5
-            elif category in ["INCORRECT", "SYNTAX_ERROR"]:
-                correct = False
-                score = 0.0
-            else:
-                # Fallback for unexpected categories
-                correct = False
-                score = 0.0
+        if category == "EQUIVALENT":
+            correct = True
+            score = 1.0
+        elif category == "PARTIALLY_CORRECT":
+            correct = None  # Partial credit
+            score = 0.5
+        elif category in ["INCORRECT", "SYNTAX_ERROR"]:
+            correct = False
+            score = 0.0
+        else:
+            # Fallback for unexpected categories
+            correct = False
+            score = 0.0
                 
-            return {
+        return {
                 "correct": correct,
                 "category": category,
                 "score": score,
                 "reason": result.reasoning
             }
             
-        except Exception as e:
-            logger.error(f"Error in LLM judge evaluation: {e}")
-            return {
-                "correct": False,
-                "category": "ERROR",
-                "score": 0.0,
-                "reason": f"Judge evaluation error: {e}"
-            }
+    except Exception as e:
+        logger.error(f"Error in LLM judge evaluation: {e}")
+        return {
+            "correct": False,
+            "category": "ERROR",
+            "score": 0.0,
+            "reason": f"Judge evaluation error: {e}"
+        }
 
 
 def safe_set_span_attributes(span, attributes):
@@ -217,7 +221,6 @@ def safe_set_span_attributes(span, attributes):
     if span and not span.is_recording():
         logger.debug("Span is not recording, skipping attribute setting")
         return
-        
     try:
         if span and hasattr(span, 'set_attributes'):
             span.set_attributes(attributes)
@@ -283,7 +286,7 @@ def process_and_evaluate_sample(tracer, sample, evaluator, back_translator,
             
             # Evaluate Cypher query correctness using LLM judge
             cypher_assessment = compare_query_results_with_llm(
-                sample['cypher'], pipeline_result.generated_query, sample['schema'], cypher_judge
+                sample['cypher'], pipeline_result.generated_query, sample['schema'], cypher_judge, sample['question']
             )
             
             # Set evaluation results as attributes
