@@ -1,5 +1,5 @@
 version = 1
-revision = 2
+revision = 3
 requires-python = ">=3.12"
 resolution-markers = [
     "python_full_version >= '3.13'",
@@ -1400,6 +1400,7 @@ dependencies = [
     { name = "litellm", extra = ["proxy"] },
     { name = "neo4j" },
     { name = "openinference-instrumentation-dspy" },
+    { name = "openinference-instrumentation-litellm" },
     { name = "python-dotenv" },
     { name = "sentence-transformers" },
 ]
@@ -1414,6 +1415,7 @@ requires-dist = [
     { name = "litellm", extras = ["proxy"], specifier = ">=1.75.2" },
     { name = "neo4j", specifier = ">=5.28.2" },
     { name = "openinference-instrumentation-dspy", specifier = ">=0.1.27" },
+    { name = "openinference-instrumentation-litellm", specifier = ">=0.1.25" },
     { name = "python-dotenv", specifier = ">=1.1.1" },
     { name = "sentence-transformers", specifier = ">=5.1.0" },
 ]
@@ -1674,6 +1676,24 @@ dependencies = [
 sdist = { url = "https://files.pythonhosted.org/packages/1f/92/dcc85b76a640bc704aef7ee7bf55c5eac2dcf35d6cdc8e9cb544ce9896bf/openinference_instrumentation_dspy-0.1.28.tar.gz", hash = "sha256:4813479bf8725dd6fa7c239d5a2f44ceb2903a8c171eabc517f61526191f7d59", size = 25977, upload-time = "2025-08-13T15:57:42.207Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/23/cd/ed47507354432a41a839a326cecd05f22aac851f544a22d43a27140f769f/openinference_instrumentation_dspy-0.1.28-py3-none-any.whl", hash = "sha256:bfe8bd7735a0334439227a9cdb6ab4a9fb6aaed33bf062d43d52021a9ce7c5bb", size = 14829, upload-time = "2025-08-13T15:57:40.651Z" },
+]
+
+[[package]]
+name = "openinference-instrumentation-litellm"
+version = "0.1.25"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "openinference-instrumentation" },
+    { name = "openinference-semantic-conventions" },
+    { name = "opentelemetry-api" },
+    { name = "opentelemetry-instrumentation" },
+    { name = "opentelemetry-sdk" },
+    { name = "setuptools" },
+    { name = "wrapt" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/14/c3/1b980a8d7142a9087278e8dafce94c80976d5da7ec753d469dacf6ccd722/openinference_instrumentation_litellm-0.1.25.tar.gz", hash = "sha256:d289f670f38c407542220ffdb3f89759134f02926f15ed1b57e975ca12f19ad5", size = 19292, upload-time = "2025-08-18T18:13:05.196Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/11/2a/bb35cbb951edd511fb311c4bd9c934fe07da4748018541b687c968a635b8/openinference_instrumentation_litellm-0.1.25-py3-none-any.whl", hash = "sha256:a09de0fdff8b2141fea128535be2676df452f5faa774694055723b3fbd3fca5c", size = 13137, upload-time = "2025-08-18T18:13:01.256Z" },
 ]
 
 [[package]]
@@ -2788,7 +2808,7 @@ name = "strawberry-graphql"
 version = "0.270.1"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "graphql-core", marker = "python_full_version < '4.0'" },
+    { name = "graphql-core", marker = "python_full_version < '4'" },
     { name = "packaging" },
     { name = "python-dateutil" },
     { name = "typing-extensions" },

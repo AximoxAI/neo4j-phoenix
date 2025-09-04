@@ -14,6 +14,7 @@ from openinference.instrumentation import suppress_tracing
 from phoenix.client import Client
 from opentelemetry.trace import Status, StatusCode
 from opentelemetry.trace import format_span_id
+from openinference.instrumentation.litellm import LiteLLMInstrumentor
 
 # Setup simple logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
@@ -33,7 +34,10 @@ def init_phoenix():
     )
 
     tracer = tracer_provider.get_tracer(__name__)
-    DSPyInstrumentor().instrument()
+    
+    DSPyInstrumentor().instrument(tracer_provider=tracer_provider)
+    LiteLLMInstrumentor().instrument(tracer_provider=tracer_provider)
+
     logger.info("DSPy instrumentation enabled")
 
     client = Client(base_url="http://localhost:6006")
